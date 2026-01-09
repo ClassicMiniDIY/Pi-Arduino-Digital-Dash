@@ -1,0 +1,80 @@
+# Arduino IDE
+*.hex
+*.eep
+*.elf
+*.map
+build/
+*.tmp
+
+# Arduino build output
+*.ino.cpp
+*.ino.eep.hex
+*.ino.elf.hex
+*.ino.hex
+*.ino.with_bootloader.bin
+*.ino.with_bootloader.hex
+
+# PlatformIO
+.pio/
+.pioenvs/
+.piolibdeps/
+lib/
+platformio.ini
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# Arduino IDE settings
+.idea/
+*.iml
+.DS_Store
+
+# OS Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*~
+
+# Log files
+*.log
+
+# Temporary files
+*.swp
+*.swo
+*.bak
+*.tmp
+*~
+
+# Large binary images (uncomment if not tracking)
+# *.img
+# *.img.xz
+# *.iso
+
+# Python (if used for tooling)
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+venv/
+env/
+
+# Compiled libraries
+*.a
+*.so
+*.dll
+
+# Archives
+*.zip
+*.tar.gz
+*.rar
+
+# Test coverage
+coverage/
+*.gcov
+*.gcda
+*.gcno

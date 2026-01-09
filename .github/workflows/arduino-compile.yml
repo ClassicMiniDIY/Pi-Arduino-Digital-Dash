@@ -1,0 +1,47 @@
+name: Arduino Sketch Compilation
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  compile-sketches:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        sketch:
+          - travis.cea_Digital_Dash.ino
+          - Haltech_To_Arduino_DRAFT.ino
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Arduino CLI
+        uses: arduino/setup-arduino-cli@v1
+
+      - name: Install Arduino Mega core
+        run: |
+          arduino-cli core update-index
+          arduino-cli core install arduino:avr
+
+      - name: Install required libraries
+        run: |
+          arduino-cli lib install "MCP_CAN_lib"
+
+      - name: Compile ${{ matrix.sketch }}
+        run: |
+          arduino-cli compile --fqbn arduino:avr:mega:cpu=atmega2560 "${{ matrix.sketch }}"
+
+      - name: Upload compilation artifacts
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: ${{ matrix.sketch }}-hex
+          path: |
+            ${{ matrix.sketch }}.hex
+            ${{ matrix.sketch }}.elf
+          retention-days: 30

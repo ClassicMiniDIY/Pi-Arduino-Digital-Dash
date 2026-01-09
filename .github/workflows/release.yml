@@ -1,0 +1,147 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # Triggers on version tags like v1.0.0, v2.1.3, etc.
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Arduino CLI
+        uses: arduino/setup-arduino-cli@v1
+
+      - name: Install Arduino Mega core
+        run: |
+          arduino-cli core update-index
+          arduino-cli core install arduino:avr
+
+      - name: Install required libraries
+        run: |
+          arduino-cli lib install "MCP_CAN_lib"
+
+      - name: Compile Main Sketch
+        run: |
+          arduino-cli compile --fqbn arduino:avr:mega:cpu=atmega2560 \
+            --output-dir ./build/main \
+            travis.cea_Digital_Dash.ino
+
+      - name: Compile Haltech Sketch
+        run: |
+          arduino-cli compile --fqbn arduino:avr:mega:cpu=atmega2560 \
+            --output-dir ./build/haltech \
+            Haltech_To_Arduino_DRAFT.ino
+
+      - name: Create release package
+        run: |
+          mkdir -p release-package
+
+          # Copy compiled hex files
+          cp build/main/travis.cea_Digital_Dash.ino.hex release-package/
+          cp build/haltech/Haltech_To_Arduino_DRAFT.ino.hex release-package/
+
+          # Copy source files
+          cp travis.cea_Digital_Dash.ino release-package/
+          cp Haltech_To_Arduino_DRAFT.ino release-package/
+
+          # Copy configuration and documentation
+          cp travis.cea-TS-DASH-config-Final.ini release-package/
+          cp README.md release-package/
+          cp CANBUS_Communication_Setup.md release-package/
+          cp CLAUDE.md release-package/
+          cp .gitattributes release-package/ 2>/dev/null || true
+
+          # Create ZIP archive
+          cd release-package
+          zip -r ../Pi-Arduino-Digital-Dash-${{ github.ref_name }}.zip .
+          cd ..
+
+          # Create checksums
+          sha256sum Pi-Arduino-Digital-Dash-${{ github.ref_name }}.zip > checksums.txt
+
+      - name: Extract release notes
+        id: extract-notes
+        run: |
+          # Extract version from tag
+          VERSION="${{ github.ref_name }}"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+          # Create release notes
+          cat > release-notes.md << 'EOF'
+          ## Pi-Arduino Digital Dash ${{ github.ref_name }}
+
+          ### 📦 Release Contents
+
+          This release includes:
+          - ✅ Compiled `.hex` files ready for Arduino Mega 2560
+          - 📝 Source `.ino` files for both analog sensor and Haltech CANBUS versions
+          - ⚙️ TunerStudio configuration file (`travis.cea-TS-DASH-config-Final.ini`)
+          - 📖 Complete documentation (README, CANBUS setup guide, CLAUDE.md)
+
+          ### 🚀 Quick Start
+
+          **For Pre-compiled Hex Upload:**
+          1. Download `Pi-Arduino-Digital-Dash-${{ github.ref_name }}.zip`
+          2. Extract the archive
+          3. Use Arduino IDE or `avrdude` to flash the appropriate `.hex` file to your Arduino Mega 2560
+
+          **For Source Code Compilation:**
+          1. Open the `.ino` file in Arduino IDE
+          2. Install `MCP_CAN_lib` library (for Haltech version only)
+          3. Select Board: "Arduino Mega or Mega 2560" with Processor: "ATmega2560"
+          4. Upload to your board
+
+          ### 📋 Hardware Requirements
+
+          - Raspberry Pi 5 with touchscreen
+          - Arduino Mega 2560
+          - MCP2515 CAN module (for Haltech/CANBUS version)
+          - Appropriate sensors or CANBUS connection
+
+          See README.md for complete bill of materials and wiring instructions.
+
+          ### 🔍 Verification
+
+          Verify your download with SHA256:
+          ```
+          $(cat checksums.txt)
+          ```
+
+          ### ⚠️ Important Notes
+
+          - The Haltech sketch is a **draft** and requires CANBUS frame ID customization for your specific ECU
+          - Cut the red wire on the USB printer cable for data-only connection (no +5V backfeed)
+          - Default signature: `speeduino-travis` @ 115200 baud
+
+          For detailed setup and troubleshooting, see [CLAUDE.md](https://github.com/${{ github.repository }}/blob/${{ github.ref_name }}/CLAUDE.md)
+          EOF
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            Pi-Arduino-Digital-Dash-${{ github.ref_name }}.zip
+            checksums.txt
+          body_path: release-notes.md
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload individual hex files as assets
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            build/main/travis.cea_Digital_Dash.ino.hex
+            build/haltech/Haltech_To_Arduino_DRAFT.ino.hex
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

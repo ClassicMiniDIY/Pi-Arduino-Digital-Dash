@@ -1,0 +1,84 @@
+name: Validate Documentation
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  check-markdown:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check Markdown files exist
+        run: |
+          echo "Checking for required documentation files..."
+          test -f README.md || (echo "ERROR: README.md not found" && exit 1)
+          test -f CANBUS_Communication_Setup.md || (echo "ERROR: CANBUS_Communication_Setup.md not found" && exit 1)
+          test -f CLAUDE.md || (echo "ERROR: CLAUDE.md not found" && exit 1)
+          echo "✓ All required documentation files present"
+
+      - name: Check Arduino sketches exist
+        run: |
+          echo "Checking for Arduino sketch files..."
+          test -f travis.cea_Digital_Dash.ino || (echo "ERROR: travis.cea_Digital_Dash.ino not found" && exit 1)
+          test -f Haltech_To_Arduino_DRAFT.ino || (echo "ERROR: Haltech_To_Arduino_DRAFT.ino not found" && exit 1)
+          echo "✓ All Arduino sketch files present"
+
+      - name: Check INI configuration exists
+        run: |
+          echo "Checking for TunerStudio configuration..."
+          test -f travis.cea-TS-DASH-config-Final.ini || (echo "ERROR: INI file not found" && exit 1)
+          echo "✓ TunerStudio configuration file present"
+
+      - name: Validate signature in sketches
+        run: |
+          echo "Validating speeduino-travis signature in sketches..."
+
+          # Check main sketch
+          if grep -q 'speeduino-travis' travis.cea_Digital_Dash.ino; then
+            echo "✓ Signature found in main sketch"
+          else
+            echo "ERROR: Signature not found in main sketch"
+            exit 1
+          fi
+
+          # Check Haltech sketch
+          if grep -q 'speeduino-travis' Haltech_To_Arduino_DRAFT.ino; then
+            echo "✓ Signature found in Haltech sketch"
+          else
+            echo "ERROR: Signature not found in Haltech sketch"
+            exit 1
+          fi
+
+      - name: Validate INI signature match
+        run: |
+          echo "Validating INI signature matches sketch signature..."
+          if grep -q 'speeduino-travis' travis.cea-TS-DASH-config-Final.ini; then
+            echo "✓ Signature match confirmed in INI file"
+          else
+            echo "ERROR: Signature mismatch in INI file"
+            exit 1
+          fi
+
+      - name: Check baud rate consistency
+        run: |
+          echo "Checking baud rate consistency (115200)..."
+
+          # Check main sketch
+          if grep -q '115200' travis.cea_Digital_Dash.ino; then
+            echo "✓ Baud rate found in main sketch"
+          else
+            echo "WARNING: Default baud rate not found in main sketch"
+          fi
+
+          # Check Haltech sketch
+          if grep -q '115200' Haltech_To_Arduino_DRAFT.ino; then
+            echo "✓ Baud rate found in Haltech sketch"
+          else
+            echo "WARNING: Default baud rate not found in Haltech sketch"
+          fi
