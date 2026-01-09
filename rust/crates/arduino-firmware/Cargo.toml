@@ -1,0 +1,30 @@
+[package]
+name = "arduino-firmware"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "arduino-firmware"
+path = "src/main.rs"
+
+[dependencies]
+protocol = { path = "../protocol" }
+sensors = { path = "../sensors" }
+arduino-hal = "0.1"
+panic-halt = "0.2"
+embedded-hal = "0.2"
+ufmt = "0.2"
+
+[profile.dev]
+panic = "abort"
+lto = false
+opt-level = "s"
+
+[profile.release]
+panic = "abort"
+codegen-units = 1
+debug = false
+lto = true
+opt-level = "z"  # Optimize for size - critical for 8KB RAM
+strip = true

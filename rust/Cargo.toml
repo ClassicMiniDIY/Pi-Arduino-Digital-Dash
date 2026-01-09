@@ -1,0 +1,25 @@
+[workspace]
+members = [
+    "crates/protocol",
+    "crates/sensors",
+    "crates/arduino-firmware",
+    "crates/pi-receiver",
+    "crates/simulator",
+]
+
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+authors = ["Travis CEA Digital Dash Contributors"]
+
+[profile.release]
+opt-level = "z"     # Optimize for size (critical for Arduino)
+lto = true
+codegen-units = 1
+strip = true
+
+[profile.dev]
+opt-level = "s"     # Some optimization even in dev

@@ -78,3 +78,47 @@ coverage/
 *.gcov
 *.gcda
 *.gcno
+
+# ========================================
+# Rust / Cargo
+# ========================================
+
+# Cargo build outputs
+rust/target/
+**/target/
+
+# Note: Cargo.lock IS tracked for this workspace (it's an application, not a library)
+
+# Rust backup files
+**/*.rs.bk
+
+# Cargo cache (local builds)
+.cargo/
+!rust/.cargo/  # But keep our .cargo/config.toml
+
+# Rust debug symbols
+*.pdb
+
+# AVR-specific build artifacts
+*.hex
+*.elf
+*.eep
+*.bin
+*.lss
+*.sym
+*.map
+
+# Ravedude temporary files
+.ravedude/
+
+# Rust IDE files
+rust-analyzer.json
+.rust-analyzer/
+
+# Rust profiling data
+*.profraw
+*.profdata
+
+# Rust testing artifacts
+**/tests/tmp/
+**/tests/output/

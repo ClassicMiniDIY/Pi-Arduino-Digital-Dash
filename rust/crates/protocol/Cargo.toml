@@ -1,0 +1,11 @@
+[package]
+name = "protocol"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+# no_std crate - no dependencies needed for core protocol
+
+[dev-dependencies]
+# For testing on desktop

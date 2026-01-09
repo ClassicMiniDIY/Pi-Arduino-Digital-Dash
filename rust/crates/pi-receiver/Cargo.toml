@@ -1,0 +1,24 @@
+[package]
+name = "pi-receiver"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "pi-receiver"
+path = "src/main.rs"
+
+[dependencies]
+protocol = { path = "../protocol" }
+serialport = "4.3"
+clap = { version = "4.4", features = ["derive"] }
+anyhow = "1.0"
+log = "0.4"
+env_logger = "0.11"
+
+# Optional GPIO support for Raspberry Pi
+rppal = { version = "0.18", optional = true }
+
+[features]
+default = []
+gpio = ["rppal"]

@@ -1,0 +1,11 @@
+[package]
+name = "sensors"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+libm = "0.2"  # no_std math functions (log, etc.)
+
+[dev-dependencies]
+approx = "0.5"  # For floating-point comparisons in tests
